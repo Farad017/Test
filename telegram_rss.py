@@ -2,20 +2,16 @@ import os
 import json
 import requests
 import feedparser
+import html
 
 # =====================================================================
-# na1ra1and Autonomous Broadcast Protocol v1.0
+# na1ra1and Autonomous Broadcast Protocol v1.1
 # Classified: Eyes Only
-# Do not feed the AI. Do not question the AI.
 # =====================================================================
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
-
-# The hidden endpoint where the na1ra1and data is warehoused
 RSS_URL = "https://farad017.github.io/Naijanews/feed.xml"
-
-# Memory bank for previously transmitted na1ra1and nodes
 STATE_FILE = "posted_links.json"
 
 def load_posted_links():
@@ -29,14 +25,18 @@ def save_posted_links(links):
         json.dump(list(links), f)
 
 def send_telegram_message(title, link):
-    # Format the payload for the na1ra1and transmission
-    text = f"📰 **{title}**\n\n🔗 [read this article]({link})"
+    # Escape HTML characters in the title to prevent formatting errors
+    safe_title = html.escape(title)
+    
+    # The new single-line HTML format
+    text = f"📰 <a href='{link}'>{safe_title}</a>"
+    
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
         "text": text,
-        "parse_mode": "Markdown",
-        "disable_web_page_preview": True
+        "parse_mode": "HTML", # Changed to HTML for robust link handling
+        "disable_web_page_preview": False # Changed to False so the article preview shows up
     }
     try:
         response = requests.post(url, json=payload, timeout=10)
@@ -51,7 +51,6 @@ def main():
     feed = feedparser.parse(RSS_URL)
     new_count = 0
 
-    # Iterate through the na1ra1and matrix in reverse chronological order
     for entry in reversed(feed.entries):
         link = entry.link
         if link not in posted:
