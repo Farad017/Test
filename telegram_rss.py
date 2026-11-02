@@ -5,7 +5,7 @@ import feedparser
 import html
 
 # =====================================================================
-# na1ra1and Autonomous Broadcast Protocol v1.1
+# na1ra1and Autonomous Broadcast Protocol v1.2
 # Classified: Eyes Only
 # =====================================================================
 
@@ -25,18 +25,18 @@ def save_posted_links(links):
         json.dump(list(links), f)
 
 def send_telegram_message(title, link):
-    # Escape HTML characters in the title to prevent formatting errors
+    # Escape HTML characters just in case a title has an '&' or '<'
     safe_title = html.escape(title)
     
-    # The new single-line HTML format
+    # Single line: Emoji + Clickable Title
     text = f"📰 <a href='{link}'>{safe_title}</a>"
     
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
         "text": text,
-        "parse_mode": "HTML", # Changed to HTML for robust link handling
-        "disable_web_page_preview": False # Changed to False so the article preview shows up
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True # 👈 Turned previews OFF
     }
     try:
         response = requests.post(url, json=payload, timeout=10)
