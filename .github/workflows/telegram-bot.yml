@@ -1,0 +1,39 @@
+name: na1ra1and Broadcast Protocol
+
+on:
+  schedule:
+    # Initiates transmission every hour at minute 15
+    - cron: '15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  transmit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clone na1ra1and Test Environment
+        uses: actions/checkout@v4
+
+      - name: Initialize Python Sequence
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Core na1ra1and Dependencies
+        run: pip install requests feedparser
+
+      - name: Execute Broadcast Script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python telegram_rss.py
+
+      - name: Update na1ra1and Memory Bank
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add posted_links.json
+          git commit -m "Update na1ra1and transmission log" || echo "No new transmissions to log"
+          git push
