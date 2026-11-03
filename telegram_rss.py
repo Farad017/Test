@@ -10,8 +10,8 @@ CHAT_ID = os.getenv("CHAT_ID")
 RSS_URL = "https://farad017.github.io/Naijanews/feed.xml"
 STATE_FILE = "posted_links.json"
 
-# Maximum messages to send per run to avoid Telegram anti-spam blocks
-MAX_MESSAGES_PER_RUN = 10 
+# Maximum messages to send per run
+MAX_MESSAGES_PER_RUN = 17 
 
 def load_posted_links():
     if os.path.exists(STATE_FILE):
@@ -36,12 +36,11 @@ def send_telegram_message(title, link):
     try:
         response = requests.post(url, json=payload, timeout=10)
         
-        # Handle Telegram Rate Limiting (Error 429)
         if response.status_code == 429:
             retry_after = response.json().get("parameters", {}).get("retry_after", 30)
             print(f"Rate limited by Telegram. Sleeping for {retry_after} seconds...")
             time.sleep(retry_after)
-            return send_telegram_message(title, link) # Retry the message
+            return send_telegram_message(title, link) 
             
         response.raise_for_status()
         print(f"Transmission successful: {title[:50]}...")
@@ -56,7 +55,6 @@ def main():
     feed = feedparser.parse(RSS_URL)
     new_count = 0
 
-    # Process from oldest to newest
     for entry in reversed(feed.entries):
         link = entry.link
         if link not in posted:
@@ -64,14 +62,12 @@ def main():
             if success:
                 posted.add(link)
                 new_count += 1
-                time.sleep(2) # 2 second delay between messages
+                time.sleep(2) 
                 
-                # Stop after 10 messages to avoid hitting rate limits
                 if new_count >= MAX_MESSAGES_PER_RUN:
                     print(f"Reached max limit of {MAX_MESSAGES_PER_RUN} messages for this run.")
                     break
             else:
-                print("Failed to send message. Breaking out of loop.")
                 break 
 
     save_posted_links(posted)
