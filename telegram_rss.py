@@ -60,5 +60,5 @@ def main():
     else:
         print("No new na1ra1and nodes detected. System idle.")
 
-if name == "main":
+if __name__ == "__main__":
     main()
