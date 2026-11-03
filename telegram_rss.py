@@ -51,10 +51,8 @@ def main():
                 posted.add(link)
                 new_count += 1
             else:
-                # Stop trying if Telegram is rejecting requests to avoid spamming
                 break 
 
-    # ALWAYS save the file, even if it is empty. This prevents the Git error.
     save_posted_links(posted)
     
     if new_count > 0:
@@ -62,5 +60,5 @@ def main():
     else:
         print("No new na1ra1and nodes detected. System idle.")
 
-if __name__ == "__main__":
+if name == "main":
     main()
