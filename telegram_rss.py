@@ -33,10 +33,10 @@ def send_telegram_message(title, link):
         response = requests.post(url, json=payload, timeout=10)
         response.raise_for_status()
         print(f"Transmission successful: {title[:50]}...")
-        return True  # <--- Tell the script it worked
+        return True
     except Exception as e:
         print(f"Transmission failed for '{title}': {e}")
-        return False # <--- Tell the script it failed
+        return False
 
 def main():
     posted = load_posted_links()
@@ -47,15 +47,17 @@ def main():
         link = entry.link
         if link not in posted:
             success = send_telegram_message(entry.title, link)
-            if success: # <--- ONLY add to the list if the message actually sent
+            if success:
                 posted.add(link)
                 new_count += 1
             else:
-                print("Stopping loop to prevent spamming errors.")
-                break # Stop trying if Telegram is rejecting the requests
+                # Stop trying if Telegram is rejecting requests to avoid spamming
+                break 
 
+    # ALWAYS save the file, even if it is empty. This prevents the Git error.
+    save_posted_links(posted)
+    
     if new_count > 0:
-        save_posted_links(posted)
         print(f"Synchronization complete. Transmitted {new_count} new na1ra1and nodes.")
     else:
         print("No new na1ra1and nodes detected. System idle.")
