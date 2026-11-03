@@ -3,6 +3,7 @@ import json
 import requests
 import feedparser
 import html
+import time
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
@@ -50,6 +51,7 @@ def main():
             if success:
                 posted.add(link)
                 new_count += 1
+                time.sleep(1)  # Wait 1 second between messages to avoid rate limits
             else:
                 break 
 
