@@ -4,11 +4,6 @@ import requests
 import feedparser
 import html
 
-# =====================================================================
-# na1ra1and Autonomous Broadcast Protocol v1.2
-# Classified: Eyes Only
-# =====================================================================
-
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 RSS_URL = "https://farad017.github.io/Naijanews/feed.xml"
@@ -25,28 +20,25 @@ def save_posted_links(links):
         json.dump(list(links), f)
 
 def send_telegram_message(title, link):
-    # Escape HTML characters just in case a title has an '&' or '<'
     safe_title = html.escape(title)
-    
-    # Single line: Emoji + Clickable Title
     text = f"📰 <a href='{link}'>{safe_title}</a>"
-    
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": CHAT_ID,
         "text": text,
         "parse_mode": "HTML",
-        "disable_web_page_preview": True # 👈 Turned previews OFF
+        "disable_web_page_preview": True
     }
     try:
         response = requests.post(url, json=payload, timeout=10)
         response.raise_for_status()
         print(f"Transmission successful: {title[:50]}...")
+        return True  # <--- Tell the script it worked
     except Exception as e:
         print(f"Transmission failed for '{title}': {e}")
+        return False # <--- Tell the script it failed
 
 def main():
-    print("Initiating na1ra1and synchronization...")
     posted = load_posted_links()
     feed = feedparser.parse(RSS_URL)
     new_count = 0
@@ -54,9 +46,13 @@ def main():
     for entry in reversed(feed.entries):
         link = entry.link
         if link not in posted:
-            send_telegram_message(entry.title, link)
-            posted.add(link)
-            new_count += 1
+            success = send_telegram_message(entry.title, link)
+            if success: # <--- ONLY add to the list if the message actually sent
+                posted.add(link)
+                new_count += 1
+            else:
+                print("Stopping loop to prevent spamming errors.")
+                break # Stop trying if Telegram is rejecting the requests
 
     if new_count > 0:
         save_posted_links(posted)
