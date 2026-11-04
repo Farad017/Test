@@ -1,9 +1,8 @@
 name: na1ra1and Broadcast Protocol
 
 on:
-  schedule:
-    # Initiates transmission every 10 minutes
-    #- cron: '*/30 * * * *'
+  # schedule:
+  #   - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
